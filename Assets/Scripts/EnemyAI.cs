@@ -21,10 +21,10 @@ public class EnemyAI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        switch(enemyState) 
-        {
+        //switch(enemyState) 
+        //{
             
-        }
+        //}
     }
     public void Patrol()
     {
