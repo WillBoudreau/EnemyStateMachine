@@ -15,18 +15,22 @@ public class EnemyAI : MonoBehaviour
         retreat
     }
     //Vairables
-    //Target and the points for the patrol
+    //Target and the points for the patrol (includes reference to player)
     private Transform Target;
+    public Transform player;
     public Transform[] patrolPoints;
     private int currentPatrolPoint;
-
-    private float chaseDist = 5f;
+    private Vector3 LastKnownPOS = Vector3.zero;
+    //Distance variables for enemy
+    private float chaseDist = 10f;
     private float attackDist = 1.5f;
     private float distanceToPoint;
-
+    //State tracker for the enemy
     private States currentState; 
     public NavMeshAgent agent;
-
+    float MaxTime = 20f;
+    float SearchTime;
+    //Color for the Enemy
     Renderer enemyColor;
 
     void Start()
@@ -58,6 +62,7 @@ public class EnemyAI : MonoBehaviour
                 break;
         }
     }
+    //Enemy Patrol State
     public void Patrol()
     {
         //Patrol state = blue
@@ -77,22 +82,48 @@ public class EnemyAI : MonoBehaviour
             }
             Target = patrolPoints[currentPatrolPoint];
         }
+        else if(Vector3.Distance(transform.position,player.position) <= chaseDist)
+        {
+            currentState = States.chase;
+        }
         
     }
+    //Enemy Chase State
     public void Chase()
     {
         enemyColor.material.color = Color.red;
+        agent.SetDestination(player.position);
+        if(Vector3.Distance(transform.position, player.position) > chaseDist )
+        {
+            currentState = States.search;
+        }
     }
+    //Enemy Attack State
     public void Attack()
     {
         Debug.Log("Pew pew");
         enemyColor.material.color = Color.black;
     }
+    //Enemy Seach State
     public void Search()
     {
-        Debug.Log("Where did you go?");
         enemyColor.material.color = Color.yellow;
+        MaxTime = 20f;
+        if(Vector3.Distance(transform.position,player.position) <= chaseDist)
+        {
+            Debug.Log("Max Time: "+ MaxTime + "Time: " + Time.time + "Search Time: " + SearchTime);
+            
+            LastKnownPOS = player.position;
+            agent.SetDestination(LastKnownPOS);
+            currentState = States.chase;
+        }
+        else if( Time.time - SearchTime >= MaxTime)
+        {
+            Debug.Log("22Max Time: "+ MaxTime + "Time: " + Time.time + "Search Time: " + SearchTime);
+            currentState = States.patrol;
+        }
     }
+    //Enemy Retreat state
     public void Retreat()
     {
         Debug.Log("Run away!");
