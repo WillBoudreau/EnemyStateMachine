@@ -54,10 +54,10 @@ public class PlayerMovementController : MonoBehaviour
 
         //Keybinds
         //Jump if spacebar is pressed
-        if(Input.GetKeyDown(KeyCode.Space) && IsGrounded)
-        {
-            velocity.y = Mathf.Sqrt(jumpHeight* -0.25f* gravity);
-        }
+        // if(Input.GetKeyDown(KeyCode.Space) && IsGrounded)
+        // {
+        //     velocity.y = Mathf.Sqrt(jumpHeight* -0.25f* gravity);
+        // }
         //Pause
         if(Input.GetKeyDown(KeyCode.Escape))
         {

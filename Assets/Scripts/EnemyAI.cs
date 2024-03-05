@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using TMPro;
 
 public class EnemyAI : MonoBehaviour
 {
@@ -23,15 +24,17 @@ public class EnemyAI : MonoBehaviour
     private Vector3 LastKnownPOS = Vector3.zero;
     //Distance variables for enemy
     private float chaseDist = 10f;
-    private float attackDist = 1.5f;
+    private float attackDist = 2.5f;
+    private float searchTime;
     private float distanceToPoint;
     //State tracker for the enemy
     private States currentState; 
     public NavMeshAgent agent;
-    float MaxTime = 20f;
-    float SearchTime;
+    float MaxTime;
     //Color for the Enemy
     Renderer enemyColor;
+    //Enemy Attack signal
+    public TextMeshProUGUI AttackString;
 
     void Start()
     {
@@ -60,6 +63,10 @@ public class EnemyAI : MonoBehaviour
             case States.search:
                 Search();
                 break;
+            case States.retreat:
+                Retreat();
+                break;
+
         }
     }
     //Enemy Patrol State
@@ -72,9 +79,6 @@ public class EnemyAI : MonoBehaviour
         distanceToPoint = Vector3.Distance(transform.position, Target.position);
         if(distanceToPoint <= 1f)
         {
-            Debug.Log("Going to: "+ Target);
-            Debug.Log("At"+currentPatrolPoint);
-            Debug.Log("Length: " + patrolPoints.Length);
             currentPatrolPoint++;
             if(currentPatrolPoint == patrolPoints.Length)
             {
@@ -97,36 +101,61 @@ public class EnemyAI : MonoBehaviour
         {
             currentState = States.search;
         }
+        else if(Vector3.Distance(transform.position, player.position) <= attackDist)
+        {
+            currentState = States.attack;
+        }
     }
     //Enemy Attack State
     public void Attack()
     {
-        Debug.Log("Pew pew");
-        enemyColor.material.color = Color.black;
+            enemyColor.material.color = Color.black;
+            agent.SetDestination(transform.position);
+            if(Vector3.Distance(transform.position,player.position) > attackDist)
+            {
+                StartCoroutine(timer());
+                currentState = States.chase;
+            }
     }
     //Enemy Seach State
     public void Search()
     {
         enemyColor.material.color = Color.yellow;
-        MaxTime = 20f;
-        if(Vector3.Distance(transform.position,player.position) <= chaseDist)
+        MaxTime = 10f;
+        agent.SetDestination(LastKnownPOS);
+        searchTime = 5;
+        Debug.Log(Time.time - searchTime);
+        if(Time.time - searchTime  >= MaxTime)
         {
-            Debug.Log("Max Time: "+ MaxTime + "Time: " + Time.time + "Search Time: " + SearchTime);
-            
-            LastKnownPOS = player.position;
-            agent.SetDestination(LastKnownPOS);
-            currentState = States.chase;
-        }
-        else if( Time.time - SearchTime >= MaxTime)
-        {
-            Debug.Log("22Max Time: "+ MaxTime + "Time: " + Time.time + "Search Time: " + SearchTime);
+            Debug.Log("Time1 "+searchTime);
+            Debug.Log("Time2 "+Time.time);
+            searchTime += 5;
             currentState = States.patrol;
         }
+        else if(Vector3.Distance(transform.position,player.position) <= chaseDist)
+        {
+            currentState = States.chase;
+        }
+        
     }
     //Enemy Retreat state
     public void Retreat()
     {
         Debug.Log("Run away!");
         enemyColor.material.color = Color.green;
+        agent.SetDestination(Target.position);
+        distanceToPoint = Vector3.Distance(transform.position, Target.position);
+        if(distanceToPoint <= 1f)
+        {
+           agent.SetDestination(transform.position);
+        }
+        else if(Vector3.Distance(transform.position,player.position) <= chaseDist)
+        {
+            currentState = States.chase;
+        }
+    }
+    IEnumerator timer()
+    {
+        yield return new WaitForSeconds(MaxTime);
     }
 }
