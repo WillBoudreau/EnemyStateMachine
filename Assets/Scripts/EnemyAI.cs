@@ -25,7 +25,7 @@ public class EnemyAI : MonoBehaviour
     //Distance variables for enemy
     private float chaseDist = 10f;
     private float attackDist = 2.5f;
-    private float searchTime;
+    private int searchTime = 300;
     private float distanceToPoint;
     //State tracker for the enemy
     private States currentState; 
@@ -41,7 +41,7 @@ public class EnemyAI : MonoBehaviour
         //Set the current Patrol point
         currentPatrolPoint = 0;
         Target = patrolPoints[currentPatrolPoint];
-        currentState = States.patrol;
+        currentState = States.search;
         Vector3 distance = gameObject.transform.position - Target.transform.position;
         //Get a Renderer for the model
         enemyColor = GetComponent<Renderer>();
@@ -50,10 +50,7 @@ public class EnemyAI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(Vector3.Distance(transform.position,player.position) <= chaseDist)
-        {
-            currentState = States.chase;
-        }
+        ChangeState();
         switch(currentState)
         {
             case States.patrol:
@@ -72,6 +69,21 @@ public class EnemyAI : MonoBehaviour
                 Retreat();
                 break;
 
+        }
+    }
+    public void ChangeState()
+    {
+        if (Vector3.Distance(transform.position, player.position) <= chaseDist)
+        {
+            currentState = States.chase;
+            if (Vector3.Distance(transform.position, player.position) > chaseDist)
+            {
+                currentState = States.search;
+            }
+        }
+        if (Vector3.Distance(transform.position, player.position) <= attackDist)
+        {
+            currentState = States.attack;
         }
     }
     //Enemy Patrol State
@@ -102,10 +114,6 @@ public class EnemyAI : MonoBehaviour
         {
             currentState = States.search;
         }
-        else if(Vector3.Distance(transform.position, player.position) <= attackDist)
-        {
-            currentState = States.attack;
-        }
     }
     //Enemy Attack State
     public void Attack()
@@ -114,7 +122,6 @@ public class EnemyAI : MonoBehaviour
             agent.SetDestination(transform.position);
             if(Vector3.Distance(transform.position,player.position) > attackDist)
             {
-                StartCoroutine(timer());
                 currentState = States.chase;
             }
     }
@@ -122,11 +129,8 @@ public class EnemyAI : MonoBehaviour
     public void Search()
     {
         enemyColor.material.color = Color.yellow;
-        MaxTime = 20f;
         agent.SetDestination(LastKnownPOS);
-        searchTime = 5;
-        StartCoroutine(timer());
-        Debug.Log(timer());
+        StartCoroutine(timer(searchTime));
         currentState = States.patrol;
         if(Vector3.Distance(transform.position,player.position) <= chaseDist)
         {
@@ -150,8 +154,15 @@ public class EnemyAI : MonoBehaviour
             currentState = States.chase;
         }
     }
-    IEnumerator timer()
+    IEnumerator timer( int value )
     {
-        yield return new WaitForSeconds(MaxTime);
+        Debug.Log("Ienumorartor called");
+        float currentTime = 0f;
+        while(currentTime <= value)
+        {
+            Debug.Log("current Time: " + currentTime);
+            currentTime += Time.deltaTime;
+        }
+        yield return null;
     }
 }
