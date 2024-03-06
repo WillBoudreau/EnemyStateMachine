@@ -45,10 +45,15 @@ public class EnemyAI : MonoBehaviour
         Vector3 distance = gameObject.transform.position - Target.transform.position;
         //Get a Renderer for the model
         enemyColor = GetComponent<Renderer>();
+        //Distance checks
     }
     // Update is called once per frame
     void Update()
     {
+        if(Vector3.Distance(transform.position,player.position) <= chaseDist)
+        {
+            currentState = States.chase;
+        }
         switch(currentState)
         {
             case States.patrol:
@@ -86,10 +91,6 @@ public class EnemyAI : MonoBehaviour
             }
             Target = patrolPoints[currentPatrolPoint];
         }
-        else if(Vector3.Distance(transform.position,player.position) <= chaseDist)
-        {
-            currentState = States.chase;
-        }
         
     }
     //Enemy Chase State
@@ -121,18 +122,13 @@ public class EnemyAI : MonoBehaviour
     public void Search()
     {
         enemyColor.material.color = Color.yellow;
-        MaxTime = 10f;
+        MaxTime = 20f;
         agent.SetDestination(LastKnownPOS);
         searchTime = 5;
-        Debug.Log(Time.time - searchTime);
-        if(Time.time - searchTime  >= MaxTime)
-        {
-            Debug.Log("Time1 "+searchTime);
-            Debug.Log("Time2 "+Time.time);
-            searchTime += 5;
-            currentState = States.patrol;
-        }
-        else if(Vector3.Distance(transform.position,player.position) <= chaseDist)
+        StartCoroutine(timer());
+        Debug.Log(timer());
+        currentState = States.patrol;
+        if(Vector3.Distance(transform.position,player.position) <= chaseDist)
         {
             currentState = States.chase;
         }
