@@ -25,7 +25,7 @@ public class EnemyAI : MonoBehaviour
     //Distance variables for enemy
     private float chaseDist = 10f;
     private float attackDist = 2.5f;
-    private float searchTime = 30f;
+    private float searchTime = 15f;
     private float distanceToPoint;
     //State tracker for the enemy
     private States currentState; 
@@ -138,13 +138,14 @@ public class EnemyAI : MonoBehaviour
         if(DistToPlayer > 0.1f)
         {
             agent.SetDestination(LastKnownPOS);
-            Debug.Log(searchTime);
-            searchTime -= Time.deltaTime;
-            if (searchTime <= 0)
-            {
-                currentState = States.retreat;
-                searchTime = 30f;
-            }
+        }
+        searchTime -= Time.deltaTime;
+        Debug.Log(searchTime);
+        if (searchTime <= 0)
+        {
+            currentState = States.retreat;
+            isSearching = false;
+            searchTime = 30f;
         }
     }
     //Enemy Retreat state
