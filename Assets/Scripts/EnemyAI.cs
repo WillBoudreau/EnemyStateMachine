@@ -25,7 +25,7 @@ public class EnemyAI : MonoBehaviour
     //Distance variables for enemy
     private float chaseDist = 10f;
     private float attackDist = 2.5f;
-    private int searchTime = 30000;
+    private float searchTime = 30f;
     private float distanceToPoint;
     //State tracker for the enemy
     private States currentState; 
@@ -33,8 +33,8 @@ public class EnemyAI : MonoBehaviour
     float MaxTime;
     //Color for the Enemy
     Renderer enemyColor;
-    //Enemy Attack signal
-    public TextMeshProUGUI AttackString;
+    //Enemy Bools
+    bool isSearching;
 
     void Start()
     {
@@ -129,14 +129,22 @@ public class EnemyAI : MonoBehaviour
     public void Search()
     {
         enemyColor.material.color = Color.yellow;
-        LastKnownPOS = player.position;
-        float searchTime = 5f;
-        searchTime -= Time.deltaTime;
-        agent.SetDestination(LastKnownPOS);
-        if (searchTime <= 0)
+        if(!isSearching)
         {
-            currentState = States.search;
-            searchTime = 5f;
+            LastKnownPOS = player.position;
+            isSearching = true;
+        }
+        float DistToPlayer = Vector3.Distance(transform.position, LastKnownPOS);
+        if(DistToPlayer > 0.1f)
+        {
+            agent.SetDestination(LastKnownPOS);
+            Debug.Log(searchTime);
+            searchTime -= Time.deltaTime;
+            if (searchTime <= 0)
+            {
+                currentState = States.retreat;
+                searchTime = 30f;
+            }
         }
     }
     //Enemy Retreat state
@@ -151,10 +159,4 @@ public class EnemyAI : MonoBehaviour
            agent.SetDestination(transform.position);
         }
     }
-    //IEnumerator timer( int value )
-    //{
-    //    Debug.Log("Ienumorartor called");
-    //    yield return null;
-    //    Debug.Log(value);
-    //}
 }
