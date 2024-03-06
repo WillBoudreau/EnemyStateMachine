@@ -149,10 +149,6 @@ public class EnemyAI : MonoBehaviour
         {
            agent.SetDestination(transform.position);
         }
-        else if(Vector3.Distance(transform.position,player.position) <= chaseDist)
-        {
-            currentState = States.chase;
-        }
     }
     IEnumerator timer( int value )
     {
