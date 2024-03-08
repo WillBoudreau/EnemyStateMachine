@@ -21,12 +21,12 @@ public class PlayerMovementController : MonoBehaviour
     int count = 0;
     [Header("UI")]
     public TextMeshProUGUI countText;
-    public GameObject PauseMenu;
+    // public GameObject PauseMenu;
     // Update is called once per frame
     void Start()
     {
         IsPaused=false;
-        PauseMenu.SetActive(false);
+        // PauseMenu.SetActive(false);
         StartPOS = transform.position;
         CharacterCont = gameObject.GetComponent<CharacterController>();
         Debug.Log(StartPOS);
@@ -62,13 +62,13 @@ public class PlayerMovementController : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.Escape))
         {
             Time.timeScale = 0.0f;
-            PauseMenu.SetActive(true);
+            // PauseMenu.SetActive(true);
         }
         if(Input.GetKeyDown(KeyCode.B))
         {
             Time.timeScale = 1.0f;
             Cursor.lockState = CursorLockMode.Locked;
-            PauseMenu.SetActive(false);
+            // PauseMenu.SetActive(false);
         }
         //Kill box
         if(velocity.y <= -15)

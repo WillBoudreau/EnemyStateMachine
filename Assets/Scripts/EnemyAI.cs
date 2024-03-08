@@ -132,7 +132,6 @@ public class EnemyAI : MonoBehaviour
         {
             agent.SetDestination(transform.position);
             searchTime -= Time.deltaTime;
-            Debug.Log(searchTime);
              if (searchTime <= 0)
             {
                 currentState = States.retreat;
