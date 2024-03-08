@@ -7,7 +7,7 @@ using TMPro;
 public class EnemyAI : MonoBehaviour
 {
     //States of the Enemy
-    enum States
+    public enum States
     {
         patrol,
         chase,
@@ -36,7 +36,6 @@ public class EnemyAI : MonoBehaviour
     Renderer enemyColor;
     //Enemy Bools
     bool isSearching;
-
     void Start()
     {
         //Set the current Patrol point
@@ -69,6 +68,10 @@ public class EnemyAI : MonoBehaviour
                 Retreat();
                 break;
         }
+    }
+    public States GetState()
+    {
+        return currentState;
     }
     //Enemy Patrol State
     public void Patrol()
@@ -160,6 +163,10 @@ public class EnemyAI : MonoBehaviour
                 currentState = States.patrol;
                 retreatTime = 10f;
            }
+        }
+        if(Vector3.Distance(transform.position, player.position) < chaseDist)
+        {
+            currentState = States.chase;
         }
     }
 }
