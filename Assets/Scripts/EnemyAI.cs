@@ -21,14 +21,15 @@ public class EnemyAI : MonoBehaviour
     public Transform player;
     public Transform[] patrolPoints;
     private int currentPatrolPoint;
-    private Vector3 LastKnownPOS = Vector3.zero;
+    private Vector3 LastKnownPOS;
     //Distance variables for enemy
     private float chaseDist = 10f;
     private float attackDist = 2.5f;
-    private float searchTime = 15f;
     private float distanceToPoint;
     //State tracker for the enemy
     private States currentState; 
+    private float searchTime = 8f;
+    private float retreatTime = 8f;
     public NavMeshAgent agent;
     float MaxTime;
     //Color for the Enemy
@@ -41,7 +42,7 @@ public class EnemyAI : MonoBehaviour
         //Set the current Patrol point
         currentPatrolPoint = 0;
         Target = patrolPoints[currentPatrolPoint];
-        currentState = States.search;
+        currentState = States.patrol;
         Vector3 distance = gameObject.transform.position - Target.transform.position;
         //Get a Renderer for the model
         enemyColor = GetComponent<Renderer>();
@@ -50,7 +51,6 @@ public class EnemyAI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        ChangeState();
         switch(currentState)
         {
             case States.patrol:
@@ -68,22 +68,6 @@ public class EnemyAI : MonoBehaviour
             case States.retreat:
                 Retreat();
                 break;
-
-        }
-    }
-    public void ChangeState()
-    {
-        if (Vector3.Distance(transform.position, player.position) <= chaseDist)
-        {
-            currentState = States.chase;
-            if (Vector3.Distance(transform.position, player.position) > chaseDist)
-            {
-                currentState = States.search;
-            }
-        }
-        if (Vector3.Distance(transform.position, player.position) <= attackDist)
-        {
-            currentState = States.attack;
         }
     }
     //Enemy Patrol State
@@ -103,6 +87,10 @@ public class EnemyAI : MonoBehaviour
             }
             Target = patrolPoints[currentPatrolPoint];
         }
+        if(Vector3.Distance(transform.position, player.position) <= chaseDist)
+        {
+            currentState = States.chase;
+        }
         
     }
     //Enemy Chase State
@@ -110,9 +98,14 @@ public class EnemyAI : MonoBehaviour
     {
         enemyColor.material.color = Color.red;
         agent.SetDestination(player.position);
-        if(Vector3.Distance(transform.position, player.position) > chaseDist )
+        if(Vector3.Distance(transform.position, player.position) > chaseDist)
         {
+            LastKnownPOS = player.position;
             currentState = States.search;
+        }
+        else if(Vector3.Distance(transform.position, player.position) <= attackDist)
+        {
+            currentState = States.attack;
         }
     }
     //Enemy Attack State
@@ -120,44 +113,53 @@ public class EnemyAI : MonoBehaviour
     {
             enemyColor.material.color = Color.black;
             agent.SetDestination(transform.position);
-            if(Vector3.Distance(transform.position,player.position) > attackDist)
+            if(Vector3.Distance(transform.position, player.position) > attackDist)
             {
-                currentState = States.chase;
+                if(Vector3.Distance(transform.position, player.position) < chaseDist)
+                {
+                    currentState = States.chase;
+                }
             }
     }
     //Enemy Seach State
     public void Search()
     {
         enemyColor.material.color = Color.yellow;
-        if(!isSearching)
+        if(Vector3.Distance(transform.position, LastKnownPOS) <= 1f)
         {
-            LastKnownPOS = player.position;
-            isSearching = true;
+            agent.SetDestination(transform.position);
+            searchTime -= Time.deltaTime;
+            Debug.Log(searchTime);
+             if (searchTime <= 0)
+            {
+                currentState = States.retreat;
+                searchTime = 8f;
+            }
         }
-        float DistToPlayer = Vector3.Distance(transform.position, LastKnownPOS);
-        if(DistToPlayer > 0.1f)
+        if(Vector3.Distance(transform.position, player.position) <= chaseDist)
+        {
+            currentState = States.chase;
+        }
+        else
         {
             agent.SetDestination(LastKnownPOS);
-        }
-        searchTime -= Time.deltaTime;
-        Debug.Log(searchTime);
-        if (searchTime <= 0)
-        {
-            currentState = States.retreat;
-            isSearching = false;
-            searchTime = 30f;
         }
     }
     //Enemy Retreat state
     public void Retreat()
     {
-        Debug.Log("Run away!");
         enemyColor.material.color = Color.green;
         agent.SetDestination(Target.position);
         distanceToPoint = Vector3.Distance(transform.position, Target.position);
         if(distanceToPoint <= 1f)
         {
            agent.SetDestination(transform.position);
+           retreatTime -= Time.deltaTime;
+           if(retreatTime <= 0 )
+           {
+                currentState = States.patrol;
+                retreatTime = 10f;
+           }
         }
     }
 }
